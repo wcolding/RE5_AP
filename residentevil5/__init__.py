@@ -244,6 +244,33 @@ class RE5World(World):
 
         return slot_data
 
+    def generate_output(self, output_directory: str):
+        if self.multiworld.players != 1:
+            return
+
+        location_data = json.dumps({location.address: location.item.code for location in self.get_locations()})
+
+        file_data = b"APRE5\0\0\0"
+        file_data += len(location_data).to_bytes(4, "little")
+        compressed = False # todo: support compression
+        file_data += compressed.to_bytes(4,"little")
+        
+        seed_pad = 32 - len(self.multiworld.seed_name)
+        file_data += self.multiworld.seed_name[0:22].encode("utf-8") + (b"\0" * seed_pad)
+
+        name_pad = 16 - len(self.player_name)
+        file_data += self.player_name[0:15].encode("utf-8") + (b"\0" * name_pad)
+
+        if compressed:
+            pass # todo: support compression
+        else:
+            file_data += location_data.encode("utf-8")
+
+        file_name = f"{self.multiworld.get_out_file_name_base(self.player)}.apre5"
+        file = open(os.path.join(output_directory, file_name), "wb+")
+        file.write(file_data)
+        file.close()
+
 class Re5Item(Item):
     game: str = "Resident Evil 5"
     
