@@ -249,6 +249,7 @@ class RE5World(World):
             return
 
         location_data = json.dumps({location.address: location.item.code for location in self.get_locations()})
+        slot_data = self.fill_slot_data()
 
         file_data = b"APRE5\0\0\0"
         file_data += len(location_data).to_bytes(4, "little")
@@ -260,6 +261,11 @@ class RE5World(World):
 
         name_pad = 16 - len(self.player_name)
         file_data += self.player_name[0:15].encode("utf-8") + (b"\0" * name_pad)
+
+        file_data += slot_data["StartingChapter"].to_bytes(4, "little")
+        file_data += slot_data["StartingWeapon"].to_bytes(4, "little")
+        file_data += slot_data["IncludeTreasures"].to_bytes(4, "little")
+        file_data += slot_data["ExcludeDriving"].to_bytes(4, "little")
 
         if compressed:
             pass # todo: support compression
